@@ -30,7 +30,10 @@ namespace WpfApp1
         [Fact]
         public void FormatDisk()
         {
-            DriveDiskManager.SetLabel('H',"哼");
+            if (DriveDiskManager.SetRemovableDiskFormat('H', "NTFS"))
+            {
+                PermissionManager.OnlyKeepEveryonePermissionsWithWriteNotAllowed(@"H:\");
+            }
         }
     }
 }

@@ -15,6 +15,28 @@ namespace WpfApp1
     /// </summary>
     public class DriveDiskManager
     {
+        #region 项目:修改u盘格式为目标格式
+
+        public static bool SetRemovableDiskFormat(char driveLetter,string diskformat)
+        {
+            if (CheckDriverDiskIsUDisk(driveLetter))
+            {
+                string driverType = "";
+                if (GetDriverDiskFormat(driveLetter, out driverType))
+                {
+                    if (!driverType.ToUpper().Equals(diskformat.ToUpper()))
+                    {
+                        return FormatDrive(driveLetter);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        #endregion
+
         #region 设置驱动器卷标
 
         /// <summary>
@@ -23,7 +45,7 @@ namespace WpfApp1
         /// <param name="driveLetter">drive letter. Example : 'A', 'B', 'C', 'D', ..., 'Z'.</param>
         /// <param name="label">label for the drive</param>
         /// <returns>true if success, false if failure</returns>
-        public static bool SetLabel(char driveLetter, string label = "")
+        private static bool SetLabel(char driveLetter, string label = "")
         {
             #region args check
 
@@ -50,6 +72,9 @@ namespace WpfApp1
                 return false;
             }
         }
+        #endregion
+
+        #region 获取磁盘格式
 
         /// <summary>
         /// 获取磁盘格式
@@ -57,7 +82,7 @@ namespace WpfApp1
         /// <param name="driveLetter"></param>
         /// <param name="format"></param>
         /// <returns></returns>
-        public static bool GetDriverDiskFormat(char driveLetter, out string format)
+        private static bool GetDriverDiskFormat(char driveLetter, out string format)
         {
             format = "";
 
@@ -87,6 +112,39 @@ namespace WpfApp1
 
         #endregion
 
+        #region 检测该磁盘是否为可移动硬盘
+
+
+        /// <summary>
+        /// 检测该磁盘是否为可移动硬盘
+        /// </summary>
+        /// <param name="driveLetter"></param>
+        /// <returns></returns>
+        private static bool CheckDriverDiskIsUDisk(char driveLetter)
+        {
+            #region args check
+
+            if (!Char.IsLetter(driveLetter))
+            {
+                return false;
+            }
+            #endregion
+            try
+            {
+                DriveInfo di = DriveInfo.GetDrives()
+                                        .Where(d => d.Name.StartsWith(driveLetter.ToString()))
+                                        .FirstOrDefault();
+                return di.DriveType == DriveType.Removable;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+        }
+
+        #endregion
+
         #region 格式化磁盘
 
         /// <summary>
@@ -99,7 +157,7 @@ namespace WpfApp1
         /// <param name="enableCompression">enable drive compression?</param>
         /// <param name="clusterSize">cluster size (default=null for auto). Possible value depends on the file system : 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, ...</param>
         /// <returns>true if success, false if failure</returns>
-        public static bool FormatDrive(char driveLetter, string label = "", string fileSystem = "NTFS", bool quickFormat = true, bool enableCompression = false, int? clusterSize = null)
+        private static bool FormatDrive(char driveLetter, string label = "", string fileSystem = "NTFS", bool quickFormat = true, bool enableCompression = false, int? clusterSize = null)
         {
             return FormatDrive_CommandLine(driveLetter, label, fileSystem, quickFormat, enableCompression, clusterSize);
         }
@@ -118,7 +176,7 @@ namespace WpfApp1
         /// <param name="enableCompression">enable drive compression?</param>
         /// <param name="clusterSize">cluster size (default=null for auto). Possible value depends on the file system : 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, ...</param>
         /// <returns>true if success, false if failure</returns>
-        public static bool FormatDrive_CommandLine(char driveLetter, string label = "", string fileSystem = "NTFS", bool quickFormat = true, bool enableCompression = false, int? clusterSize = null)
+        private static bool FormatDrive_CommandLine(char driveLetter, string label = "", string fileSystem = "NTFS", bool quickFormat = true, bool enableCompression = false, int? clusterSize = null)
         {
             #region args check
 
@@ -212,7 +270,7 @@ namespace WpfApp1
         /// <param name="quickFormat">quick formatting?</param>
         /// <returns>true if success, false if failure</returns>
         [Obsolete("Unsupported by Microsoft nowadays. Prefer the FormatDrive() or FormatDrive_CommandLine() methods")]
-        public static bool FormatDrive_Shell32(char driveLetter, string label = "", bool quickFormat = true)
+        private static bool FormatDrive_Shell32(char driveLetter, string label = "", bool quickFormat = true)
         {
             #region args check
 
@@ -265,7 +323,7 @@ namespace WpfApp1
         /// <param name="clusterSize">cluster size. Possible value depends on the file system : 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, ...</param>
         /// <returns>true if success, false if failure</returns>
         [Obsolete("Might have troubles formatting ram drives. Prefer the FormatDrive() or FormatDrive_CommandLine() methods")]
-        public static bool FormatDrive_Win32Api(char driveLetter, string label = "", string fileSystem = "NTFS", bool quickFormat = true, bool enableCompression = false, int clusterSize = 8192)
+        private static bool FormatDrive_Win32Api(char driveLetter, string label = "", string fileSystem = "NTFS", bool quickFormat = true, bool enableCompression = false, int clusterSize = 8192)
         {
             #region args check
 
@@ -302,7 +360,7 @@ namespace WpfApp1
         /// </summary>
         /// <param name="fileSystem">file system. Possible values : "FAT", "FAT32", "EXFAT", "NTFS", "UDF".</param>
         /// <returns>true if valid, false if invalid</returns>
-        public static bool IsFileSystemValid(string fileSystem)
+        private static bool IsFileSystemValid(string fileSystem)
         {
             #region args check
 
